@@ -1,0 +1,35 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // File Layout (এক ফাইলের জন্য rootDir লাগবে না, তবে বিল্ডের জন্য outDir অন করে দেওয়া ভালো)
+    "outDir": "./dist",
+
+    // Environment Settings
+    "module": "nodenext",
+    "target": "esnext",
+    
+    // 🔴 পরিবর্তন: খালি types অ্যারে সরিয়ে lib এবং node types অন করতে হবে
+    "lib": ["esnext"],
+    "types": ["node"],
+
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Recommended Options
+    "strict": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
+  },
+  // 🔴 পরিবর্তন: TypeScript যেন শুধু আপনার index.ts ফাইলটিকে ট্র্যাক করে
+  "include": ["index.ts"]
+}
