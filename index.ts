@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import { MongoClient, ServerApiVersion, Collection, type Document } from 'mongodb';
+import { MongoClient, ServerApiVersion, Collection, type Document, ObjectId } from 'mongodb';
 import 'dotenv/config';
 
 const app = express();
@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 async function main(): Promise<void> {
   try {
     const db = client.db('rentigo');
-    // const productCollection: Collection<Document> = db.collection('grocery');
+    const carCollection: Collection<Document> = db.collection('rentCar');
 
     // ১. হোম রাউট
     app.get('/', (req: Request, res: Response) => {
@@ -37,15 +37,98 @@ async function main(): Promise<void> {
 
     // ২. গ্রোসারি পোস্ট রাউট
     app.post('/api/car', async (req: Request, res: Response) => {
-      try {
+    
         const body = req.body;
-        const result = await productCollection.insertOne(body);
+        const result = await carCollection.insertOne(body);
         res.status(201).send(result);
-      } catch (error) {
-        console.error("Data insertion error:", error);
-        res.status(500).send({ error: "Failed to insert item" });
-      }
+    
     });
+    // সবগুলো গাড়ি গেট করার রাউট
+// আপনার এক্সপ্রেস ব্যাকএন্ড রাউট ফাইলে যান (/api/car)
+app.get('/api/car', async (req: Request, res: Response) => {
+  try {
+    // নিশ্চিত করুন req.query অবজেক্টটি ঠিকঠাক ডিস্ট্রাকচার করা হচ্ছে
+    const search = req.query.search as string;
+    const sortBy = req.query.sortBy as string;
+    const sortOrder = req.query.sortOrder as string;
+
+    let query = {};
+    
+    // সার্চ লজিক ফিক্স
+    if (search && search.trim() !== '') {
+      query = {
+        title: { $regex: search, $options: 'i' } // 'i' এর কারণে F বা f যাই দিন না কেন Ferari খুঁজে পাবে
+      };
+    }
+
+    // কনসোলে চেক করার জন্য এটি ব্যবহার করুন (টার্মিনালে নোড জেএস লগে দেখতে পাবেন)
+    console.log("Database Query Object:", query);
+
+    const sortField = sortBy || 'createdAt';
+    const direction = sortOrder === 'desc' ? -1 : 1;
+
+    // মঙ্গোডিবি ফাইন্ড কুয়েরি
+    const cursor = carCollection.find(query).sort({ [sortField]: direction });
+    
+    // পেজিনেশন লজিক
+    const pageNumber = parseInt(req.query.page as string) || 1;
+    const limitNumber = parseInt(req.query.limit as string) || 8;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const result = await cursor.skip(skip).limit(limitNumber).toArray();
+    const totalCars = await carCollection.countDocuments(query);
+
+    res.send({
+      success: true,
+      meta: { page: pageNumber, limit: limitNumber, total: totalCars, totalPages: Math.ceil(totalCars / limitNumber) },
+      data: result
+    });
+
+  } catch (error) {
+    res.status(500).send({ success: false, error: (error as Error).message });
+  }
+});
+app.get('/api/car/:id', async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+  const id = req.params.id;
+  
+  const query = {
+    _id: new ObjectId(id),
+  };
+  
+  const result = await carCollection.findOne(query);
+  res.send(result);
+});
+app.delete('/api/car/:id', async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+  const id = req.params.id;
+
+  const query = {
+    _id: new ObjectId(id),
+  };
+
+  const result = await carCollection.deleteOne(query);
+
+  if (result.deletedCount === 1) {
+    res.status(200).send({ message: "Car deleted successfully" });
+  } else {
+    res.status(404).send({ message: "Car not found" });
+  }
+});
+app.patch('/api/car/:id', async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+  const id = req.params.id;
+  const { isAvailable } = req.body; 
+
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      isAvailable: isAvailable 
+    },
+  };
+
+  const result = await carCollection.updateOne(filter, updateDoc);
+  res.send(result)
+
+});
+
 
     // DB Connection Ping
     await client.db("admin").command({ ping: 1 });
