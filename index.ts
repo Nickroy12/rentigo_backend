@@ -29,6 +29,7 @@ async function main(): Promise<void> {
   try {
     const db = client.db('rentigo');
     const carCollection: Collection<Document> = db.collection('rentCar');
+    const rentCollection: Collection<Document> = db.collection('rent');
 
     // ১. হোম রাউট
     app.get('/', (req: Request, res: Response) => {
@@ -43,8 +44,8 @@ async function main(): Promise<void> {
         res.status(201).send(result);
     
     });
-    // সবগুলো গাড়ি গেট করার রাউট
-// আপনার এক্সপ্রেস ব্যাকএন্ড রাউট ফাইলে যান (/api/car)
+
+  
 app.get('/api/car', async (req: Request, res: Response) => {
   try {
     // নিশ্চিত করুন req.query অবজেক্টটি ঠিকঠাক ডিস্ট্রাকচার করা হচ্ছে
@@ -128,8 +129,47 @@ app.patch('/api/car/:id', async (req: Request<{ id: string }>, res: Response): P
   res.send(result)
 
 });
+    app.post('/api/rent', async (req: Request, res: Response) => {
+    
+        const body = req.body;
 
+      const newRentDoc = {
+    ...body,
+    createdAt: new Date() // Generates an ISODate timestamp
+  };
 
+  const result = await rentCollection.insertOne(newRentDoc);
+  res.status(201).send(result);
+    
+    });
+    
+app.get("/api/rent", async (req: Request, res: Response) => {
+  // Use Record<string, any> so TypeScript allows dynamic properties
+  const query: Record<string, any> = {};
+  
+  if (req.query.sub_id) {
+    query.email = req.query.sub_id as string;
+  }
+
+  const cursor = rentCollection.find(query);
+  const result = await cursor.toArray();
+  res.send(result);
+});
+app.patch('/api/rent/:id', async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+  const id = req.params.id;
+  const { cardStatus } = req.body; 
+
+  const filter = { carId: id};
+  const updateDoc = {
+    $set: {
+      cardStatus: cardStatus
+    },
+  };
+
+  const result = await rentCollection.updateOne(filter, updateDoc);
+  res.send(result)
+
+});
     // DB Connection Ping
     await client.db("admin").command({ ping: 1 });
     console.log("⚡️ Successfully connected to MongoDB!");
