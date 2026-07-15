@@ -171,7 +171,7 @@ app.patch('/api/rent/:id', async (req: Request<{ id: string }>, res: Response): 
 
 });
     // DB Connection Ping
-    // await client.db("admin").command({ ping: 1 });
+    await client.db("admin").command({ ping: 1 });
     console.log("⚡️ Successfully connected to MongoDB!");
 
     // সার্ভার লিসেন (কানেকশন সফল হলে সার্ভার স্টার্ট হবে)
