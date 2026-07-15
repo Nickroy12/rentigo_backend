@@ -25,8 +25,8 @@ const client = new MongoClient(uri, {
   }
 });
 
-async function main(): Promise<void> {
-  try {
+// async function main(): Promise<void> {
+//   try {
     const db = client.db('rentigo');
     const carCollection: Collection<Document> = db.collection('rentCar');
     const rentCollection: Collection<Document> = db.collection('rent');
@@ -179,10 +179,12 @@ app.patch('/api/rent/:id', async (req: Request<{ id: string }>, res: Response): 
     //   console.log(`🚀 Server listening on http://localhost:${port}`);
     // });
 
-  } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
-    process.exit(1);
-  }
-}
+  // } catch (error) {
+  //   console.error("❌ MongoDB Connection Error:", error);
+  //   process.exit(1);
+  // }
+// }
 
-main().catch(console.dir);
+// main().catch(console.dir);
+
+export default app 
