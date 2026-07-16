@@ -175,9 +175,9 @@ app.patch('/api/rent/:id', async (req: Request<{ id: string }>, res: Response): 
     console.log("⚡️ Successfully connected to MongoDB!");
 
     // সার্ভার লিসেন (কানেকশন সফল হলে সার্ভার স্টার্ট হবে)
-    // app.listen(port, () => {
-    //   console.log(`🚀 Server listening on http://localhost:${port}`);
-    // });
+    app.listen(port, () => {
+      console.log(`🚀 Server listening on http://localhost:${port}`);
+    });
 
   // } catch (error) {
   //   console.error("❌ MongoDB Connection Error:", error);
